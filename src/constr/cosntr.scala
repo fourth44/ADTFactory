@@ -10,25 +10,18 @@ case class Fact(e: String) extends XbrliObject
 case class Context(e: String) extends XbrliObject
 case class Item(e: String) extends XbrliObject
 
-
-sealed abstract class Foo(e: String)
-case class Bar extends Foo("1")
-case class Bazz extends Foo("2")
-
-
-
-trait SameTypes[C, H <: HList, F[I,_], I] {}
+trait SameTypes[C, H <: HList, F[_,_], W[_]] {}
 
 object SameTypes {
   
-  class Apply[P, F[I,_]] {
-    def apply[H <: HList, C <: Coproduct, I](h: H)(implicit st: SameTypes[C, H, F, I], gen: Generic.Aux[P, C]): SameTypes[C,H,F, I] = st
+  class Apply[P, F[_,_], W[_]] {
+    def apply[H <: HList, C <: Coproduct, I](h: H)(implicit st: SameTypes[C, H, F, W], gen: Generic.Aux[P, C]): SameTypes[C,H,F, W] = st
   }
-  def apply[P, F[_,_]] = new Apply[P, F]
+  def apply[P, F[_,_], W[_]] = new Apply[P, F, W]
   
-  implicit def sameNil[F[I,_], I]: SameTypes[CNil, HNil, F, I] = new SameTypes[CNil, HNil, F, I] {}
+  implicit def sameNil[F[_,_], W[_]]: SameTypes[CNil, HNil, F, W] = new SameTypes[CNil, HNil, F, W] {}
   
-  implicit def sameOther[I, H0, CT <: Coproduct, HT <: HList, F[I,_]](implicit ct: SameTypes[CT, HT, F, I]) = new SameTypes[H0 :+: CT, F[I, H0] :: HT, F, I] {}
+  implicit def sameOther[I, H0, CT <: Coproduct, HT <: HList, F[_,_], W[_]](implicit ct: SameTypes[CT, HT, F, W]) = new SameTypes[H0 :+: CT, F[I, W[H0]] :: HT, F, W] {}
 }
 
 trait SealedFamilyFactory {
@@ -37,11 +30,13 @@ trait SealedFamilyFactory {
   type Constructors <: HList
   type Input
   val constructors: Constructors
+  type F[_,_]
+  type O[_]
   
-  implicit val st: SameTypes[generic.Repr, Constructors, Function1, Input]
+  implicit val st: SameTypes[generic.Repr, Constructors, F, O]
   
-  def apply[T](input: Input)(implicit sel: Selector[Constructors, Input => T]) = {
-    constructors.select[Input => T].apply(input)
+  def apply[T](input: Input)(implicit sel: Selector[Constructors, Input => Option[T]]) = {
+    constructors.select[Input => Option[T]].apply(input)
   } 
   
 }
@@ -53,22 +48,25 @@ object XbrliObjectFactory extends SealedFamilyFactory {
   implicit val generic = Generic[XbrliObject]
   type Input = String
   
-  val c0: String => Context = { case s: String if s == "contect" => Context(s)}
-  val c1: String => Fact = { case s: String if s == "fact" => Fact(s)}
-  val c2: String => Item = { case s: String if s == "item" => Item(s)}
+  type F[A,B] = Function1[A,B]
+  type O[A] = Option[A]
   
-  type Constructors = (String => Context) :: (String => Fact) :: (String => Item) :: HNil 
+  def opt[A](pf: PartialFunction[Input, A]) = pf.lift
   
+  val c0 = opt { case s: String if s == "contect" => Context(s)}
+  val c1 = opt { case s: String if s == "fact" => Fact(s)}
+  val c2 = opt { case s: String if s == "item" => Item(s)}
+  
+  type Constructors = (String => Option[Context]) :: (String => Option[Fact]) :: (String => Option[Item]) :: HNil 
   val constructors = c0 :: c1 :: c2 :: HNil
   
-  val st = SameTypes[XbrliObject, Function1](constructors)
-  
+  val st = SameTypes[XbrliObject, F, Option](constructors)
   
 }
 
 object main extends App {
   val myselector = "fact"
   
-  val myFact = XbrliObjectFactory.apply[Fact](myselector)
+  val myFact: Option[Fact] = XbrliObjectFactory[Fact](myselector)
 }
 
