@@ -1,7 +1,7 @@
 package constr
 
 import shapeless._
-import shapeless.ops.hlist.Selector
+import shapeless.ops.hlist.{Selector, ToList}
 
 
 trait CoproductConstructable[C, H <: HList] {}
@@ -16,7 +16,7 @@ trait SealedFamilyFactory[Input, SealedFamily] {
   type Constructors <: HList
   val constructors: Constructors
   
-  class Apply[T] {
+  class Create[T] {
     def apply[Repr](input: Input)(implicit sel: Selector[Constructors, Input => Option[T]], 
         gen: Generic.Aux[SealedFamily, Repr],
         con: CoproductConstructable[Repr, Constructors]) = {
@@ -24,8 +24,13 @@ trait SealedFamilyFactory[Input, SealedFamily] {
     }
   }
   
-  def apply[T] = new Apply[T]
+  def createOfType[T] = new Create[T]
   
+  def createAny[Repr](input: Input)(implicit gen: Generic.Aux[SealedFamily, Repr],
+        con: CoproductConstructable[Repr, Constructors],
+        lub: ToList[Constructors,(Input => Option[SealedFamily])]) = {
+    constructors.toList(lub).flatMap(a => a(input)).headOption
+  } 
 }
 
 
