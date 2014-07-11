@@ -1,4 +1,4 @@
-package constr
+package eu.jwalters.adtfactory
 
 import shapeless._
 import shapeless.ops.hlist.{ Selector, ToList }

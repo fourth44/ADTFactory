@@ -1,7 +1,6 @@
-package constr
+package eu.jwalters.adtfactory
 
 import shapeless._
-import shapeless.ops.hlist._
 
 object MyFactoryTest extends App {
 
@@ -15,7 +14,7 @@ object MyFactoryTest extends App {
    */
 
   val constructors =
-    opt { case s: String if s == "one" => ChildA(s) } ::
+      opt { case s: String if s == "one" => ChildA(s) } ::
       opt { case s: String if s == "two" => ChildB(s) } ::
       opt { case s: String if s == "three" => ChildC(s) } ::
       HNil
