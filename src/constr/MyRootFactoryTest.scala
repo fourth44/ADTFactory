@@ -7,6 +7,8 @@ object MyFactoryTest extends App {
 
   def opt[A](pf: PartialFunction[String, A]) = pf.lift
 
+  implicit val generic = Generic[MyRoot]
+
   /**
    * Create some constructors. Be sure to provide a HList of type ('inputtype' => Option['membertype']),
    * alphabetically sorted on membertype.
@@ -22,8 +24,6 @@ object MyFactoryTest extends App {
    * Using the constructors we can make an actual factory. Doesn't work if they do not match the subtypes of the root type.
    * A Generic['roottype'] must be in scope.
    */
-
-  implicit val generic = Generic[MyRoot]
 
   val myRootFactory = ADTFactory[String, MyRoot](constructors)
 

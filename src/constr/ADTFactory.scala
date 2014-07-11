@@ -3,18 +3,28 @@ package constr
 import shapeless._
 import shapeless.ops.hlist.{ Selector, ToList }
 
-trait CoproductConstructable[C, H <: HList] {}
+/**
+ * Witnesses that every element X in Coproduct C is matched by an element in HList H of the form (I => Option[X])
+ */
+trait CoproductConstructable[I, C, H <: HList] {}
 
 object CoproductConstructable {
-  implicit def sameNil: CoproductConstructable[CNil, HNil] = new CoproductConstructable[CNil, HNil] {}
-  implicit def sameOther[H0, CT <: Coproduct, HT <: HList](implicit ct: CoproductConstructable[CT, HT]) = new CoproductConstructable[H0 :+: CT, (String => Option[H0]) :: HT] {}
+  implicit def sameNil[I]: CoproductConstructable[I, CNil, HNil] = new CoproductConstructable[I, CNil, HNil] {}
+  implicit def sameOther[I, H0, CT <: Coproduct, HT <: HList](implicit ct: CoproductConstructable[I, CT, HT]) = new CoproductConstructable[I, H0 :+: CT, (I => Option[H0]) :: HT] {}
 }
 
+/**
+ * Provides factory methods (indirectly) around a HList of constructors of type (Input => Option[_]), 
+ * requiring proof that the list of constructors provide for all possible direct subtypes of ADTRoot.
+ */
 class ADTFactory[Input, ADTRoot] {
 
-  def apply[Constructors <: HList, Repr](c: Constructors)(implicit gen: Generic.Aux[ADTRoot, Repr], con: CoproductConstructable[Repr, Constructors]) = new Factory[Constructors, Repr](c)
+  def apply[Constructors <: HList, Repr](c: Constructors)(implicit gen: Generic.Aux[ADTRoot, Repr], con: CoproductConstructable[Input, Repr, Constructors]) = new FactoryOps[Constructors, Repr](c)
 
-  class Factory[Constructors <: HList, Repr](constructors: Constructors)(implicit gen: Generic.Aux[ADTRoot, Repr], con: CoproductConstructable[Repr, Constructors]) {
+  /**
+   * Deferred class providing the actual implementation, but using a list of generics that can be inferred by the compiler using Input and ADTRoot. 
+   */
+  class FactoryOps[Constructors <: HList, Repr](constructors: Constructors)(implicit gen: Generic.Aux[ADTRoot, Repr], con: CoproductConstructable[Input, Repr, Constructors]) {
 
     class CreateOfType[T] {
       def apply[Repr](input: Input)(implicit sel: Selector[Constructors, Input => Option[T]]) = {
@@ -31,7 +41,8 @@ class ADTFactory[Input, ADTRoot] {
 }
 
 object ADTFactory {
-  def apply[I, A] = new ADTFactory[I, A]()
+  
+  def apply[Input, ADTRoot] = new ADTFactory[Input, ADTRoot]()
 }
 
 
