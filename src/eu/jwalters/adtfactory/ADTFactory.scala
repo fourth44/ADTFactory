@@ -16,6 +16,9 @@ object CoproductConstructable {
 /**
  * Provides factory methods (indirectly) around a HList of constructors of type (Input => Option[_]), 
  * requiring proof that the list of constructors provide for all possible direct subtypes of ADTRoot.
+ * Preferred syntax: 
+ * val factory = ADTFactory[Input, ADTRoot](constructors: HList)
+ * val value: Option[M] = factory.createOfType[M](i: Input) // for some member type M of ADTRoot
  */
 class ADTFactory[Input, ADTRoot] {
 
