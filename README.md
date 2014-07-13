@@ -1,8 +1,9 @@
 ADTFactory
 ==========
 
-Proof of Concept for assisting in creating type-safe factories for mapping from values of some type to values of member types of a single-level ADT. ADTFactory makes use of Shapeless.
+Proof of Concept for assisting in creating type-safe factories for mapping from values of some type to values of member types of a single-level ADT.
 The ADT should be a sealed trait or sealed abstract class with case class members. 
+ADTFactory makes use of Shapeless.
 
 A concrete factory is obtained by creating a ADTFactory providing a HList of constructor types for each ADT member (InputType => Option[MemberType]). Note that the HList should be ordered alphabetically according to the type names of the members, and cannot provide any constuctor functions to types outside the ATD. Both limitations can be lifted but was not of interest for this PoC.
 
