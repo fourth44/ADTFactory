@@ -1,7 +1,7 @@
 ADTFactory
 ==========
 
-Proof of Concept for assisting in creating type-safe factories for a single-level ADT using Shapeless.
+Proof of Concept for assisting in creating type-safe factories for mapping from values of some type to values of member types of a single-level ADT. ADTFactory makes use of Shapeless.
 The ADT should be a sealed trait or sealed abstract class with case class members. 
 
 A concrete factory is obtained by creating a ADTFactory providing a HList of constructor types for each ADT member (InputType => Option[MemberType]). Note that the HList should be ordered alphabetically according to the type names of the members, and cannot provide any constuctor functions to types outside the ATD. Both limitations can be lifted but was not of interest for this PoC.
@@ -29,10 +29,10 @@ val constructors =
   
 val myRootFactory = ADTFactory[String, MyRoot](constructors)
 
-val myChildB: Option[ChildB] = myRootFactory.createOfType[ChildB]("two")
-val myNone: Option[ChildB] = myRootFactory.createOfType[ChildB]("one")
-val myUnknown = myRootFactory.createAny("three")
-val myNotThere = myRootFactory.createAny("four")
+val myChildB:   Option[ChildB] = myRootFactory.createOfType[ChildB]("two")
+val myNone:     Option[ChildB] = myRootFactory.createOfType[ChildB]("one")
+val myUnknown:  Option[MyRoot] = myRootFactory.createAny("three")
+val myNotThere: Option[MyRoot] = myRootFactory.createAny("four")
 
 assert(myChildB == Some(ChildB("two")))
 assert(myNone == None)
