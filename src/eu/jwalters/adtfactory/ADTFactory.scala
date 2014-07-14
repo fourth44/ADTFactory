@@ -25,7 +25,7 @@ class ADTFactory[Input, ADTRoot] {
   def apply[Constructors <: HList, Repr](c: Constructors)(implicit gen: Generic.Aux[ADTRoot, Repr], con: CoproductConstructable[Input, Repr, Constructors]) = new FactoryOps[Constructors, Repr](c)
 
   /**
-   * Deferred class providing the actual implementation, but using a list of generics that can be inferred by the compiler using Input and ADTRoot. 
+   * Deferred class providing the actual implementation, but using type parameters that can be inferred by the compiler using Input and ADTRoot. 
    */
   class FactoryOps[Constructors <: HList, Repr](constructors: Constructors)(implicit gen: Generic.Aux[ADTRoot, Repr], con: CoproductConstructable[Input, Repr, Constructors]) {
 
