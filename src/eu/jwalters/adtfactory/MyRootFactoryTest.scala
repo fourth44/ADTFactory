@@ -44,4 +44,12 @@ object MyFactoryTest extends App {
   println(myNone)
   println(myUnknown)
   println(myNotThere)
+  
+  /**
+   * And now the non-ADT factory: basically the same except not all member types need to be present 
+   * (or in alphabetic order for that manner), and the least upper bound type is inferred.
+   */
+  
+  val myRootFactory2 = Factory[String](constructors)
+
 }
